@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>Series &amp; Pelis</title>
+<link href="manifest.json?v=1.1" rel="manifest"/>
+<meta content="#0f172a" name="theme-color"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="black-translucent" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="Series&amp;Pelis" name="apple-mobile-web-app-title"/>
+<link href="./icons/icon-180.png?v=1.1" rel="apple-touch-icon" sizes="180x180"/>
+<link href="./icons/icon-167.png?v=1.1" rel="apple-touch-icon" sizes="167x167"/>
+<link href="./icons/icon-152.png?v=1.1" rel="apple-touch-icon" sizes="152x152"/>
+<link href="./icons/icon-192.png?v=1.1" rel="icon" sizes="192x192" type="image/png"/>
+<link href="styles.css" rel="stylesheet"/>
+</head>
+<body>
+<div class="app">
+<div class="shell">
+<header>
+<nav aria-label="Selector de pantallas" class="tabs" role="tablist">
+<button aria-selected="true" class="tab" data-main="series" role="tab">SERIES</button>
+<button aria-selected="false" class="tab" data-main="peliculas" role="tab">PELÍCULAS</button>
+<button aria-selected="false" class="tab" data-main="anadir" role="tab">Añadir</button>
+</nav>
+</header>
+<main aria-live="polite" class="panel">
+<section class="screens">
+<!-- SERIES HOME -->
+<div class="screen active" data-screen="series-home">
+<div class="menu">
+<button class="menuBtn" data-screen="series-pendientes">Series pendientes</button>
+<button class="menuBtn" data-screen="series-vistas">Series vistas</button>
+</div>
+</div>
+<!-- SERIES PENDIENTES (LISTA) -->
+<div class="screen" data-screen="series-pendientes">
+<div class="backRow">
+<span class="pill countPill" id="count-series-pendientes">0</span>
+<div class="backTools">
+<button aria-label="Buscar" class="toolBtn" data-search-toggle="series-pendientes" type="button">🔎</button>
+<div class="searchBox collapsed" data-search-box="series-pendientes">
+<input class="searchInput" data-search="series-pendientes" placeholder="Buscar..."/>
+<button aria-label="Limpiar" class="searchClear" data-search-clear="series-pendientes" type="button">×</button>
+</div>
+<button class="toolBtn" data-action="filter" data-scope="series-pendientes" type="button">Filtrar</button>
+<button class="toolBtn" data-action="sort" data-scope="series-pendientes" type="button">Ordenar</button>
+</div>
+<button class="backBtn" data-screen="series-home">← Volver</button>
+</div>
+<div class="listWrap" id="list-series-pendientes"></div>
+<div class="pager" id="pager-series-pendientes" style="display:none;"></div>
+<div class="empty" id="empty-series-pendientes" style="display:none;">
+              No tienes series pendientes todavía. Ve a <b>Añadir</b> para guardar una.
+            </div>
+</div>
+<!-- SERIES VISTAS (LISTA) -->
+<div class="screen" data-screen="series-vistas">
+<div class="backRow">
+<span class="pill countPill" id="count-series-vistas">0</span>
+<div class="backTools">
+<button aria-label="Buscar" class="toolBtn" data-search-toggle="series-vistas" type="button">🔎</button>
+<div class="searchBox collapsed" data-search-box="series-vistas">
+<input class="searchInput" data-search="series-vistas" placeholder="Buscar..."/>
+<button aria-label="Limpiar" class="searchClear" data-search-clear="series-vistas" type="button">×</button>
+</div>
+<button class="toolBtn" data-action="filter" data-scope="series-vistas" type="button">Filtrar</button>
+<button class="toolBtn" data-action="sort" data-scope="series-vistas" type="button">Ordenar</button>
+</div>
+<button class="backBtn" data-screen="series-home">← Volver</button>
+</div>
+<div class="listWrap" id="list-series-vistas"></div>
+<div class="pager" id="pager-series-vistas" style="display:none;"></div>
+<div class="empty" id="empty-series-vistas" style="display:none;">
+              No tienes series vistas todavía. Ve a <b>Añadir</b> para guardar una.
+            </div>
+</div>
+<!-- PELICULAS HOME -->
+<div class="screen" data-screen="peliculas-home">
+<div class="menu">
+<button class="menuBtn" data-screen="peliculas-pendientes">Películas pendientes</button>
+<button class="menuBtn" data-screen="peliculas-vistas">Películas vistas</button>
+</div>
+</div>
+<!-- PELICULAS PENDIENTES (LISTA) -->
+<div class="screen" data-screen="peliculas-pendientes">
+<div class="backRow">
+<span class="pill countPill" id="count-peliculas-pendientes">0</span>
+<div class="backTools">
+<button aria-label="Buscar" class="toolBtn" data-search-toggle="peliculas-pendientes" type="button">🔎</button>
+<div class="searchBox collapsed" data-search-box="peliculas-pendientes">
+<input class="searchInput" data-search="peliculas-pendientes" placeholder="Buscar..."/>
+<button aria-label="Limpiar" class="searchClear" data-search-clear="peliculas-pendientes" type="button">×</button>
+</div>
+<button class="toolBtn" data-action="filter" data-scope="peliculas-pendientes" type="button">Filtrar</button>
+<button class="toolBtn" data-action="sort" data-scope="peliculas-pendientes" type="button">Ordenar</button>
+</div>
+<button class="backBtn" data-screen="peliculas-home">← Volver</button>
+</div>
+<div class="listWrap" id="list-peliculas-pendientes"></div>
+<div class="pager" id="pager-peliculas-pendientes" style="display:none;"></div>
+<div class="empty" id="empty-peliculas-pendientes" style="display:none;">
+              No tienes películas pendientes todavía. Ve a <b>Añadir</b> para guardar una.
+            </div>
+</div>
+<!-- PELICULAS VISTAS (LISTA) -->
+<div class="screen" data-screen="peliculas-vistas">
+<div class="backRow">
+<span class="pill countPill" id="count-peliculas-vistas">0</span>
+<div class="backTools">
+<button aria-label="Buscar" class="toolBtn" data-search-toggle="peliculas-vistas" type="button">🔎</button>
+<div class="searchBox collapsed" data-search-box="peliculas-vistas">
+<input class="searchInput" data-search="peliculas-vistas" placeholder="Buscar..."/>
+<button aria-label="Limpiar" class="searchClear" data-search-clear="peliculas-vistas" type="button">×</button>
+</div>
+<button class="toolBtn" data-action="filter" data-scope="peliculas-vistas" type="button">Filtrar</button>
+<button class="toolBtn" data-action="sort" data-scope="peliculas-vistas" type="button">Ordenar</button>
+</div>
+<button class="backBtn" data-screen="peliculas-home">← Volver</button>
+</div>
+<div class="listWrap" id="list-peliculas-vistas"></div>
+<div class="pager" id="pager-peliculas-vistas" style="display:none;"></div>
+<div class="empty" id="empty-peliculas-vistas" style="display:none;">
+              No tienes películas vistas todavía. Ve a <b>Añadir</b> para guardar una.
+            </div>
+</div>
+<!-- AÑADIR HOME -->
+<div class="screen" data-screen="anadir-home">
+<div class="menu">
+<button class="menuBtn" data-screen="anadir-series">Series</button>
+<button class="menuBtn" data-screen="anadir-peliculas">Películas</button>
+<!-- ✅ Nuevo botón intermedio -->
+<button class="menuBtn" data-screen="backup-home">Importar / Exportar</button>
+</div>
+</div>
+<!-- AÑADIR: SERIES -->
+<div class="screen" data-screen="anadir-series">
+<div class="backRow">
+<span class="pill">Añadir · Series</span>
+<button class="backBtn" data-screen="anadir-home">← Volver</button>
+</div>
+<div class="menu" style="padding-top:10px">
+<button class="menuBtn" data-screen="anadir-series-pendientes">Añadir a pendientes</button>
+<button class="menuBtn" data-screen="anadir-series-vistas">Añadir a vistas</button>
+</div>
+</div>
+<!-- AÑADIR: PELICULAS -->
+<div class="screen" data-screen="anadir-peliculas">
+<div class="backRow">
+<span class="pill">Añadir · Películas</span>
+<button class="backBtn" data-screen="anadir-home">← Volver</button>
+</div>
+<div class="menu" style="padding-top:10px">
+<button class="menuBtn" data-screen="anadir-peliculas-pendientes">Añadir a pendientes</button>
+<button class="menuBtn" data-screen="anadir-peliculas-vistas">Añadir a vistas</button>
+</div>
+</div>
+<!-- BACKUP HOME -->
+<div class="screen" data-screen="backup-home">
+<div class="backRow">
+<span class="pill">Datos</span>
+<div class="backTools"></div>
+<button class="backBtn" data-screen="anadir-home">← Volver</button>
+</div>
+<div class="menu">
+<button class="menuBtn" id="btnExport" type="button">Exportar datos (JSON)</button>
+<label class="menuBtn" for="importFileReplace" id="btnImportReplaceLabel">Importar datos (REEMPLAZAR)</label>
+<input accept="application/json" id="importFileReplace" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;" type="file"/>
+<label class="menuBtn" for="importFileMerge" id="btnImportMergeLabel">Importar datos (MEZCLAR)</label>
+<input accept="application/json" id="importFileMerge" style="position:absolute; left:-9999px; width:1px; height:1px; opacity:0;" type="file"/>
+</div>
+</div>
+<!-- FORM: AÑADIR SERIE PENDIENTE -->
+<div class="screen" data-screen="anadir-series-pendientes">
+<div class="backRow">
+<span class="pill">Formulario · Serie pendiente</span>
+<button class="backBtn" data-screen="anadir-series" type="button">← Volver</button>
+</div>
+<form autocomplete="off" class="formCard" id="form-series-pendientes">
+<div class="formGrid">
+<div class="field">
+<label for="sp-title">Título <span class="req">*</span></label>
+<input id="sp-title" name="title" placeholder="Ej. Dark" required=""/>
+</div>
+<div class="field">
+<label for="sp-platform">Plataforma</label>
+<input id="sp-platform" name="platform" placeholder="Ej. Netflix"/>
+</div>
+<div class="field">
+<label for="sp-genre">Género</label>
+<input id="sp-genre" name="genre" placeholder="Ej. Ciencia ficción"/>
+</div>
+<div class="field">
+<label for="sp-seasons">Temporadas</label>
+<input id="sp-seasons" min="0" name="seasons" placeholder="Ej. 3" step="1" type="number"/>
+</div>
+<div class="field">
+<label for="sp-episodes">Capítulos</label>
+<input id="sp-episodes" min="0" name="episodes" placeholder="Ej. 24" step="1" type="number"/>
+</div>
+<div class="field">
+<label for="sp-duration">Duración Cap.</label>
+<input id="sp-duration" name="duration" placeholder="Ej. 45 min/ep"/>
+</div>
+<div class="field" style="grid-column:1/-1;">
+<label for="sp-synopsis">Sinopsis</label>
+<textarea id="sp-synopsis" name="synopsis" placeholder="Sinopsis..."></textarea>
+</div>
+</div>
+<div class="formActions">
+<div style="display:flex; gap:10px;">
+<button class="btnPrimary" type="submit">Guardar</button>
+</div>
+<div class="msg" id="msg-sp"></div>
+</div>
+</form>
+</div>
+<!-- FORM: AÑADIR PELÍCULA PENDIENTE -->
+<div class="screen" data-screen="anadir-peliculas-pendientes">
+<div class="backRow">
+<span class="pill">Formulario · Película pendiente</span>
+<button class="backBtn" data-screen="anadir-peliculas" type="button">← Volver</button>
+</div>
+<form autocomplete="off" class="formCard" id="form-peliculas-pendientes">
+<div class="formGrid">
+<div class="field">
+<label for="pp-title">Título <span class="req">*</span></label>
+<input id="pp-title" name="title" placeholder="Ej. Interstellar" required=""/>
+</div>
+<div class="field">
+<label for="pp-platform">Plataforma</label>
+<input id="pp-platform" name="platform" placeholder="Ej. Prime Video"/>
+</div>
+<div class="field">
+<label for="pp-genre">Género</label>
+<input id="pp-genre" name="genre" placeholder="Ej. Aventura"/>
+</div>
+<div class="field">
+<label for="pp-duration">Duración</label>
+<input id="pp-duration" name="duration" placeholder="Ej. 2h 49m"/>
+</div>
+<div class="field" style="grid-column:1/-1;">
+<label for="pp-synopsis">Sinopsis</label>
+<textarea id="pp-synopsis" name="synopsis" placeholder="Sinopsis..."></textarea>
+</div>
+</div>
+<div class="formActions">
+<div style="display:flex; gap:10px;">
+<button class="btnPrimary" type="submit">Guardar</button>
+</div>
+<div class="msg" id="msg-pp"></div>
+</div>
+</form>
+</div>
+<!-- FORM: AÑADIR SERIE VISTA -->
+<div class="screen" data-screen="anadir-series-vistas">
+<div class="backRow">
+<span class="pill">Formulario · Serie vista</span>
+<button class="backBtn" data-screen="anadir-series" type="button">← Volver</button>
+</div>
+<form autocomplete="off" class="formCard" id="form-series-vistas">
+<div class="formGrid">
+<div class="field">
+<label for="sv-title">Título <span class="req">*</span></label>
+<input id="sv-title" name="title" placeholder="Ej. The Bear" required=""/>
+</div>
+<div class="field">
+<label for="sv-platform">Plataforma</label>
+<input id="sv-platform" name="platform" placeholder="Ej. Disney+"/>
+</div>
+<div class="field">
+<label for="sv-genre">Género</label>
+<input id="sv-genre" name="genre" placeholder="Ej. Drama"/>
+</div>
+<div class="field">
+<label for="sv-seasons">Temporadas</label>
+<input id="sv-seasons" min="0" name="seasons" placeholder="Ej. 2" step="1" type="number"/>
+</div>
+<div class="field">
+<label for="sv-episodes">Capítulos</label>
+<input id="sv-episodes" min="0" name="episodes" placeholder="Ej. 18" step="1" type="number"/>
+</div>
+<div class="field">
+<label for="sv-duration">Duración Cap.</label>
+<input id="sv-duration" name="duration" placeholder="Ej. 30 min/ep"/>
+</div>
+<input id="sv-rating-adri" name="ratingAdri" type="hidden"/>
+<input id="sv-rating-laura" name="ratingLaura" type="hidden"/>
+<div class="ratingBlock">
+<div class="ratingHead">
+<div class="ratingName">Valoración Adri <span class="req">*</span></div>
+<div class="ratingValue" id="sv-adri-val">—</div>
+</div>
+<div aria-label="Valoración Adri" class="stars" data-out="sv-adri-val" data-target="sv-rating-adri" data-widget="rating"></div>
+</div>
+<div class="ratingBlock">
+<div class="ratingHead">
+<div class="ratingName">Valoración Laura <span class="req">*</span></div>
+<div class="ratingValue" id="sv-laura-val">—</div>
+</div>
+<div aria-label="Valoración Laura" class="stars" data-out="sv-laura-val" data-target="sv-rating-laura" data-widget="rating"></div>
+</div>
+<div class="twoNotes">
+<div class="field">
+<label for="sv-notes-adri">Notas Adri</label>
+<textarea id="sv-notes-adri" name="notesAdri" placeholder="Notas de Adri..."></textarea>
+</div>
+<div class="field">
+<label for="sv-notes-laura">Notas Laura</label>
+<textarea id="sv-notes-laura" name="notesLaura" placeholder="Notas de Laura..."></textarea>
+</div>
+</div>
+</div>
+<div class="formActions">
+<div style="display:flex; gap:10px;">
+<button class="btnPrimary" type="submit">Guardar</button>
+</div>
+<div class="msg" id="msg-sv"></div>
+</div>
+</form>
+</div>
+<!-- FORM: AÑADIR PELÍCULA VISTA -->
+<div class="screen" data-screen="anadir-peliculas-vistas">
+<div class="backRow">
+<span class="pill">Formulario · Película vista</span>
+<button class="backBtn" data-screen="anadir-peliculas" type="button">← Volver</button>
+</div>
+<form autocomplete="off" class="formCard" id="form-peliculas-vistas">
+<div class="formGrid">
+<div class="field">
+<label for="pv-title">Título <span class="req">*</span></label>
+<input id="pv-title" name="title" placeholder="Ej. Whiplash" required=""/>
+</div>
+<div class="field">
+<label for="pv-platform">Plataforma</label>
+<input id="pv-platform" name="platform" placeholder="Ej. HBO Max"/>
+</div>
+<div class="field">
+<label for="pv-genre">Género</label>
+<input id="pv-genre" name="genre" placeholder="Ej. Thriller"/>
+</div>
+<div class="field">
+<label for="pv-duration">Duración</label>
+<input id="pv-duration" name="duration" placeholder="Ej. 1h 46m"/>
+</div>
+<input id="pv-rating-adri" name="ratingAdri" type="hidden"/>
+<input id="pv-rating-laura" name="ratingLaura" type="hidden"/>
+<div class="ratingBlock">
+<div class="ratingHead">
+<div class="ratingName">Valoración Adri <span class="req">*</span></div>
+<div class="ratingValue" id="pv-adri-val">—</div>
+</div>
+<div aria-label="Valoración Adri" class="stars" data-out="pv-adri-val" data-target="pv-rating-adri" data-widget="rating"></div>
+</div>
+<div class="ratingBlock">
+<div class="ratingHead">
+<div class="ratingName">Valoración Laura <span class="req">*</span></div>
+<div class="ratingValue" id="pv-laura-val">—</div>
+</div>
+<div aria-label="Valoración Laura" class="stars" data-out="pv-laura-val" data-target="pv-rating-laura" data-widget="rating"></div>
+</div>
+<div class="twoNotes">
+<div class="field">
+<label for="pv-notes-adri">Notas Adri</label>
+<textarea id="pv-notes-adri" name="notesAdri" placeholder="Notas de Adri..."></textarea>
+</div>
+<div class="field">
+<label for="pv-notes-laura">Notas Laura</label>
+<textarea id="pv-notes-laura" name="notesLaura" placeholder="Notas de Laura..."></textarea>
+</div>
+</div>
+</div>
+<div class="formActions">
+<div style="display:flex; gap:10px;">
+<button class="btnPrimary" type="submit">Guardar</button>
+</div>
+<div class="msg" id="msg-pv"></div>
+</div>
+</form>
+</div>
+</section>
+</main>
+</div>
+</div>
+<!-- Modal detalle (pendientes + vistas) -->
+<div aria-hidden="true" class="modalOverlay" id="detailOverlay">
+<div aria-labelledby="detailTitle" aria-modal="true" class="modalCard" role="dialog">
+<div class="modalHeader">
+<div class="modalTitle" id="detailTitle">Detalle</div>
+<button aria-label="Cerrar" class="modalClose" id="detailClose" type="button">✕</button>
+</div>
+<div class="modalBody" id="detailBody"></div>
+<div class="modalActions">
+<button class="modalBtn modalBtnEdit" id="detailEdit" type="button">Editar</button>
+<button class="modalBtn" id="detailHistory" type="button">👁️ Historial</button>
+<button class="modalBtn modalBtnSeen" id="detailSeen" type="button">Visto</button>
+<button class="modalBtn modalBtnDelete" id="detailDelete" type="button">Eliminar</button>
+</div>
+</div>
+</div>
+<!-- Modal confirmación eliminar -->
+<div aria-hidden="true" class="modalOverlay" id="confirmOverlay">
+<div aria-labelledby="confirmTitle" aria-modal="true" class="modalCard modalCardSm" role="dialog">
+<div class="modalHeader">
+<div class="modalTitle" id="confirmTitle">Confirmar eliminación</div>
+<button aria-label="Cerrar" class="modalClose" id="confirmClose" type="button">✕</button>
+</div>
+<div class="modalBody" id="confirmBody">
+<div style="font-weight:800; margin-bottom:8px;">¿Seguro que quieres eliminarlo?</div>
+<div style="color: rgba(233,237,255,.78); line-height:1.4;">
+        Esta acción eliminará la película o serie <b>permanentemente</b>.
+      </div>
+</div>
+<div class="modalActions">
+<button class="modalBtn" id="confirmCancel" type="button">Cancelar</button>
+<button class="modalBtn modalBtnDelete" id="confirmDelete" type="button">Eliminar</button>
+</div>
+</div>
+</div>
+<!-- Mini modal: Marcar como visto -->
+<div aria-hidden="true" class="modalOverlay" id="seenOverlay">
+<div aria-labelledby="seenTitle" aria-modal="true" class="modalCard modalCardSm" role="dialog">
+<div class="modalHeader">
+<div class="modalTitle" id="seenTitle">Marcar como visto</div>
+<button aria-label="Cerrar" class="modalClose" id="seenClose" type="button">✕</button>
+</div>
+<div class="modalBody">
+<form id="seenForm">
+<input id="seen-rating-adri" type="hidden"/>
+<input id="seen-rating-laura" type="hidden"/>
+<div class="ratingBlock">
+<div class="ratingHead">
+<div class="ratingName">Valoración Adri <span class="req">*</span></div>
+<div class="ratingValue" id="seen-adri-val">—</div>
+</div>
+<div aria-label="Valoración Adri" class="stars" data-out="seen-adri-val" data-target="seen-rating-adri" data-widget="rating"></div>
+</div>
+<div class="ratingBlock">
+<div class="ratingHead">
+<div class="ratingName">Valoración Laura <span class="req">*</span></div>
+<div class="ratingValue" id="seen-laura-val">—</div>
+</div>
+<div aria-label="Valoración Laura" class="stars" data-out="seen-laura-val" data-target="seen-rating-laura" data-widget="rating"></div>
+</div>
+<div class="twoNotes" style="margin-top:12px;">
+<div class="field">
+<label for="seen-notes-adri">Notas Adri</label>
+<textarea id="seen-notes-adri" placeholder="Notas de Adri..."></textarea>
+</div>
+<div class="field">
+<label for="seen-notes-laura">Notas Laura</label>
+<textarea id="seen-notes-laura" placeholder="Notas de Laura..."></textarea>
+</div>
+</div>
+<div class="msg" id="msg-seen" style="margin-top:12px;"></div>
+</form>
+</div>
+<div class="modalActions">
+<button class="modalBtn" id="seenSave" type="button">Guardar</button>
+</div>
+</div>
+</div>
+<!-- Modal historial (watchLog) -->
+<div aria-hidden="true" class="modalOverlay" id="historyOverlay">
+<div aria-labelledby="historyTitle" aria-modal="true" class="modalCard modalCardSm" role="dialog">
+<div class="modalHeader">
+<div class="modalTitle" id="historyTitle">Historial de visionados</div>
+<button aria-label="Cerrar" class="modalClose" id="historyClose" type="button">✕</button>
+</div>
+<div class="modalBody" id="historyBody"></div>
+<div class="modalActions">
+<button class="modalBtn" id="historyOk" type="button">OK</button>
+</div>
+</div>
+</div>
+<!-- Toast éxito -->
+<div aria-live="polite" class="toast" id="toast"></div>
+<!-- ===== Modal Ordenar ===== -->
+<div aria-hidden="true" class="modalOverlay" id="sortOverlay">
+<div aria-labelledby="sortTitle" aria-modal="true" class="modalCard modalCardSm" role="dialog">
+<div class="modalHeader">
+<div class="modalTitle" id="sortTitle">Ordenar</div>
+<button aria-label="Cerrar" class="modalClose" id="sortClose" type="button">✕</button>
+</div>
+<div class="modalBody">
+<div class="optList" id="sortOptions">
+<label class="optRow">
+<input name="sortMode" type="radio" value="az"/>
+<span>Alfabético (A → Z)</span>
+</label>
+<label class="optRow">
+<input name="sortMode" type="radio" value="za"/>
+<span>Alfabético (Z → A)</span>
+</label>
+<label class="optRow sortRatingOption" data-sort-only="vistas" style="display:none;">
+<input name="sortMode" type="radio" value="rating_desc"/>
+<span>Mayor puntuación</span>
+</label>
+<label class="optRow sortRatingOption" data-sort-only="vistas" style="display:none;">
+<input name="sortMode" type="radio" value="rating_asc"/>
+<span>Menor puntuación</span>
+</label>
+<label class="optRow">
+<input name="sortMode" type="radio" value="recent"/>
+<span>Más recientes</span>
+</label>
+<label class="optRow">
+<input name="sortMode" type="radio" value="old"/>
+<span>Más antiguos</span>
+</label>
+</div>
+</div>
+<div class="modalActions">
+<button class="modalBtn" id="sortCancel" type="button">Cancelar</button>
+<button class="modalBtn modalBtnSeen" id="sortApply" type="button">Aplicar</button>
+</div>
+</div>
+</div>
+<!-- ===== Modal Filtrar ===== -->
+<div aria-hidden="true" class="modalOverlay" id="filterOverlay">
+<div aria-labelledby="filterTitle" aria-modal="true" class="modalCard modalCardSm" role="dialog">
+<div class="modalHeader">
+<div class="modalTitle" id="filterTitle">Filtrar</div>
+<button aria-label="Cerrar" class="modalClose" id="filterClose" type="button">✕</button>
+</div>
+<div class="modalBody">
+<div class="filterSection">
+<div class="filterH">Plataforma</div>
+<div class="optList" id="filterPlatforms"></div>
+</div>
+<div class="filterSection" style="margin-top:14px;">
+<div class="filterH">Género</div>
+<div class="optList" id="filterGenres"></div>
+</div>
+</div>
+<div class="modalActions">
+<button class="modalBtn" id="filterClear" type="button">Limpiar</button>
+<button class="modalBtn" id="filterCancel" type="button">Cancelar</button>
+<button class="modalBtn modalBtnSeen" id="filterApply" type="button">Aplicar</button>
+</div>
+</div>
+</div>
+<script defer="" src="app.js"></script>
+</body>
+</html>
