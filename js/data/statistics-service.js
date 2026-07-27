@@ -1,0 +1,342 @@
+// ---------- Servicio de estadísticas y recomendaciones ----------
+const StatisticsService = (() => {
+  const COLLECTIONS = Object.freeze({
+    seriesPendientes: KEY.seriesPendientes,
+    peliculasPendientes: KEY.peliculasPendientes,
+    seriesVistas: KEY.seriesVistas,
+    peliculasVistas: KEY.peliculasVistas
+  });
+
+  function allData() {
+    return {
+      seriesPendientes:
+        LibraryRepository.getAll(COLLECTIONS.seriesPendientes),
+      peliculasPendientes:
+        LibraryRepository.getAll(COLLECTIONS.peliculasPendientes),
+      seriesVistas:
+        LibraryRepository.getAll(COLLECTIONS.seriesVistas),
+      peliculasVistas:
+        LibraryRepository.getAll(COLLECTIONS.peliculasVistas)
+    };
+  }
+
+  function splitValues(value) {
+    return String(value || "")
+      .split(/[,/|;]+/)
+      .map(part => part.trim())
+      .filter(Boolean);
+  }
+
+  function normalizeLabel(value) {
+    return String(value || "")
+      .trim()
+      .toLocaleLowerCase("es-ES")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  }
+
+  function labelCounts(items, field) {
+    const map = new Map();
+
+    items.forEach(item => {
+      splitValues(item?.[field]).forEach(label => {
+        const key = normalizeLabel(label);
+        if (!key) return;
+
+        if (!map.has(key)) {
+          map.set(key, { label, count: 0 });
+        }
+
+        map.get(key).count += 1;
+      });
+    });
+
+    return [...map.values()]
+      .sort((a, b) =>
+        b.count - a.count ||
+        a.label.localeCompare(b.label, "es")
+      );
+  }
+
+  function ratingPair(item) {
+    const adri = Number(item?.ratingAdri);
+    const laura = Number(item?.ratingLaura);
+    const values = [adri, laura].filter(Number.isFinite);
+
+    return values.length
+      ? values.reduce((sum, value) => sum + value, 0) / values.length
+      : null;
+  }
+
+  function average(values) {
+    const valid = values.filter(Number.isFinite);
+    if (!valid.length) return null;
+    return valid.reduce((sum, value) => sum + value, 0) / valid.length;
+  }
+
+  function parseMinutes(value) {
+    const text = String(value || "").toLocaleLowerCase("es-ES");
+    if (!text) return null;
+
+    const hourMatch = text.match(/(\d+(?:[.,]\d+)?)\s*h/);
+    const minuteMatch = text.match(/(\d+(?:[.,]\d+)?)\s*m(?:in)?/);
+
+    let minutes = 0;
+
+    if (hourMatch) {
+      minutes += Number(hourMatch[1].replace(",", ".")) * 60;
+    }
+
+    if (minuteMatch) {
+      minutes += Number(minuteMatch[1].replace(",", "."));
+    }
+
+    if (!hourMatch && !minuteMatch) {
+      const plain = Number(text.replace(",", ".").match(/\d+(?:\.\d+)?/)?.[0]);
+      if (Number.isFinite(plain)) minutes = plain;
+    }
+
+    return Number.isFinite(minutes) && minutes > 0
+      ? minutes
+      : null;
+  }
+
+  function estimatedMinutes(item) {
+    const base = parseMinutes(item?.duration);
+    if (!base) return null;
+
+    if (item?.kind === "series") {
+      const episodes = Number(item?.episodes);
+      return Number.isFinite(episodes) && episodes > 0
+        ? base * episodes
+        : base;
+    }
+
+    return base;
+  }
+
+  function watchedDate(item) {
+    const candidates = [
+      item?.watchedAt,
+      Array.isArray(item?.watchLog) && item.watchLog.length
+        ? item.watchLog[item.watchLog.length - 1]?.at
+        : null,
+      item?.createdAt
+    ];
+
+    for (const value of candidates) {
+      const timestamp = Number(value);
+      if (Number.isFinite(timestamp) && timestamp > 0) {
+        return new Date(timestamp);
+      }
+    }
+
+    return null;
+  }
+
+  function monthlyActivity(items, months = 6) {
+    const now = new Date();
+    const buckets = [];
+
+    for (let offset = months - 1; offset >= 0; offset -= 1) {
+      const date = new Date(
+        now.getFullYear(),
+        now.getMonth() - offset,
+        1
+      );
+
+      buckets.push({
+        key: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`,
+        label: new Intl.DateTimeFormat("es-ES", {
+          month: "short"
+        }).format(date).replace(".", ""),
+        count: 0
+      });
+    }
+
+    const map = new Map(buckets.map(bucket => [bucket.key, bucket]));
+
+    items.forEach(item => {
+      const date = watchedDate(item);
+      if (!date) return;
+
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+      const bucket = map.get(key);
+      if (bucket) bucket.count += 1;
+    });
+
+    return buckets;
+  }
+
+  function preferenceWeights(watched) {
+    const genreWeights = new Map();
+    const platformWeights = new Map();
+
+    watched.forEach(item => {
+      const rating = ratingPair(item);
+      const weight = Number.isFinite(rating)
+        ? Math.max(0.5, rating / 5)
+        : 1;
+
+      splitValues(item.genre).forEach(label => {
+        const key = normalizeLabel(label);
+        genreWeights.set(key, (genreWeights.get(key) || 0) + weight);
+      });
+
+      splitValues(item.platform).forEach(label => {
+        const key = normalizeLabel(label);
+        platformWeights.set(key, (platformWeights.get(key) || 0) + weight);
+      });
+    });
+
+    return { genreWeights, platformWeights };
+  }
+
+  function recommendationScore(item, preferences) {
+    let score = 0;
+    const reasons = [];
+
+    const matchingGenres = splitValues(item.genre)
+      .map(label => ({
+        label,
+        weight:
+          preferences.genreWeights.get(normalizeLabel(label)) || 0
+      }))
+      .filter(entry => entry.weight > 0)
+      .sort((a, b) => b.weight - a.weight);
+
+    if (matchingGenres.length) {
+      const genreScore = matchingGenres
+        .reduce((sum, entry) => sum + entry.weight, 0);
+
+      score += genreScore * 3;
+      reasons.push(`Te gusta ${matchingGenres[0].label}`);
+    }
+
+    const matchingPlatforms = splitValues(item.platform)
+      .map(label => ({
+        label,
+        weight:
+          preferences.platformWeights.get(normalizeLabel(label)) || 0
+      }))
+      .filter(entry => entry.weight > 0)
+      .sort((a, b) => b.weight - a.weight);
+
+    if (matchingPlatforms.length) {
+      score += matchingPlatforms[0].weight;
+      reasons.push(`Usas ${matchingPlatforms[0].label}`);
+    }
+
+    const tmdbVote = Number(item.tmdbVoteAverage);
+    if (Number.isFinite(tmdbVote) && tmdbVote > 0) {
+      score += tmdbVote / 2;
+
+      if (tmdbVote >= 7.5) {
+        reasons.push(`TMDb ${tmdbVote.toFixed(1)}/10`);
+      }
+    }
+
+    const year = Number(item.year);
+    if (Number.isFinite(year) && year >= new Date().getFullYear() - 3) {
+      score += 0.5;
+    }
+
+    if (item.posterUrl) score += 0.15;
+    if (item.synopsis) score += 0.15;
+
+    if (!reasons.length) {
+      reasons.push(
+        item.genre
+          ? `Pendiente de ${splitValues(item.genre)[0]}`
+          : "Pendiente en tu biblioteca"
+      );
+    }
+
+    return { score, reasons: reasons.slice(0, 2) };
+  }
+
+  function recommendations(data, limit = 6) {
+    const watched = [
+      ...data.seriesVistas,
+      ...data.peliculasVistas
+    ];
+
+    const pending = [
+      ...data.seriesPendientes,
+      ...data.peliculasPendientes
+    ];
+
+    const preferences = preferenceWeights(watched);
+
+    return pending
+      .map(item => ({
+        item,
+        ...recommendationScore(item, preferences)
+      }))
+      .sort((a, b) =>
+        b.score - a.score ||
+        Number(b.item.createdAt || 0) -
+          Number(a.item.createdAt || 0)
+      )
+      .slice(0, limit);
+  }
+
+  function buildDashboard() {
+    const data = allData();
+
+    const watched = [
+      ...data.seriesVistas,
+      ...data.peliculasVistas
+    ];
+
+    const pending = [
+      ...data.seriesPendientes,
+      ...data.peliculasPendientes
+    ];
+
+    const minutes = watched
+      .map(estimatedMinutes)
+      .filter(Number.isFinite);
+
+    const totalMinutes = minutes.length
+      ? minutes.reduce((sum, value) => sum + value, 0)
+      : null;
+
+    return {
+      generatedAt: Date.now(),
+      totals: {
+        all:
+          watched.length + pending.length,
+        watched: watched.length,
+        pending: pending.length,
+        series:
+          data.seriesVistas.length +
+          data.seriesPendientes.length,
+        movies:
+          data.peliculasVistas.length +
+          data.peliculasPendientes.length
+      },
+      averageRating: average(watched.map(ratingPair)),
+      totalMinutes,
+      durationCoverage: {
+        withEstimate: minutes.length,
+        watched: watched.length
+      },
+      topGenres: labelCounts(watched, "genre").slice(0, 6),
+      topPlatforms: labelCounts(
+        [...watched, ...pending],
+        "platform"
+      ).slice(0, 6),
+      monthlyActivity: monthlyActivity(watched),
+      recommendations: recommendations(data),
+      hasData: watched.length + pending.length > 0,
+      hasWatched: watched.length > 0
+    };
+  }
+
+  return Object.freeze({
+    buildDashboard,
+    parseMinutes,
+    estimatedMinutes
+  });
+})();
